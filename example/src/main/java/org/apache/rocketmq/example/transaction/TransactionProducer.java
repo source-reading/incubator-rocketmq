@@ -33,13 +33,14 @@ public class TransactionProducer {
         producer.setCheckRequestHoldMax(2000);
         producer.setTransactionCheckListener(transactionCheckListener);
         producer.start();
+        producer.setSendMsgTimeout(60*1000);
 
         String[] tags = new String[] {"TagA", "TagB", "TagC", "TagD", "TagE"};
         TransactionExecuterImpl tranExecuter = new TransactionExecuterImpl();
-        for (int i = 0; i < 100; i++) {
+        for (int i = 0; i < 1; i++) {
             try {
                 Message msg =
-                    new Message("TopicTest", tags[i % tags.length], "KEY" + i,
+                    new Message("zenggang", tags[i % tags.length], "KEY" + i,
                         ("Hello RocketMQ " + i).getBytes(RemotingHelper.DEFAULT_CHARSET));
                 SendResult sendResult = producer.sendMessageInTransaction(msg, tranExecuter, null);
                 System.out.printf("%s%n", sendResult);
@@ -50,7 +51,7 @@ public class TransactionProducer {
             }
         }
 
-        for (int i = 0; i < 100000; i++) {
+        for (int i = 0; i < 600; i++) {
             Thread.sleep(1000);
         }
         producer.shutdown();

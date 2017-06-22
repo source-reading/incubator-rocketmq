@@ -92,38 +92,38 @@ public class BrokerController {
     private static final Logger log = LoggerFactory.getLogger(LoggerName.BROKER_LOGGER_NAME);
     private static final Logger LOG_PROTECTION = LoggerFactory.getLogger(LoggerName.PROTECTION_LOGGER_NAME);
     private static final Logger LOG_WATER_MARK = LoggerFactory.getLogger(LoggerName.WATER_MARK_LOGGER_NAME);
-    private final BrokerConfig brokerConfig;
-    private final NettyServerConfig nettyServerConfig;
-    private final NettyClientConfig nettyClientConfig;
-    private final MessageStoreConfig messageStoreConfig;
-    private final ConsumerOffsetManager consumerOffsetManager;
-    private final ConsumerManager consumerManager;
-    private final ConsumerFilterManager consumerFilterManager;
-    private final ProducerManager producerManager;
-    private final ClientHousekeepingService clientHousekeepingService;
-    private final PullMessageProcessor pullMessageProcessor;
-    private final PullRequestHoldService pullRequestHoldService;
-    private final MessageArrivingListener messageArrivingListener;
-    private final Broker2Client broker2Client;
-    private final SubscriptionGroupManager subscriptionGroupManager;
+    private final BrokerConfig brokerConfig; // broker 配置
+    private final NettyServerConfig nettyServerConfig; //
+    private final NettyClientConfig nettyClientConfig; //
+    private final MessageStoreConfig messageStoreConfig; // message 存储相关配置
+    private final ConsumerOffsetManager consumerOffsetManager; // 管理消费记录
+    private final ConsumerManager consumerManager; // TODO
+    private final ConsumerFilterManager consumerFilterManager; // 管理配置
+    private final ProducerManager producerManager; // TODO
+    private final ClientHousekeepingService clientHousekeepingService; //TODO
+    private final PullMessageProcessor pullMessageProcessor; // TODO
+    private final PullRequestHoldService pullRequestHoldService; // TODO
+    private final MessageArrivingListener messageArrivingListener; // TODO 与 pullRequestHoldService 相关  NotifyMessageArrivingListener
+    private final Broker2Client broker2Client; // TODO
+    private final SubscriptionGroupManager subscriptionGroupManager; // 管理配置
     private final ConsumerIdsChangeListener consumerIdsChangeListener;
     private final RebalanceLockManager rebalanceLockManager = new RebalanceLockManager();
-    private final BrokerOuterAPI brokerOuterAPI;
+    private final BrokerOuterAPI brokerOuterAPI; // 上报 broker 信息给 nameserver 客户端
     private final ScheduledExecutorService scheduledExecutorService = Executors.newSingleThreadScheduledExecutor(new ThreadFactoryImpl(
         "BrokerControllerScheduledThread"));
-    private final SlaveSynchronize slaveSynchronize;
-    private final BlockingQueue<Runnable> sendThreadPoolQueue;
-    private final BlockingQueue<Runnable> pullThreadPoolQueue;
-    private final BlockingQueue<Runnable> clientManagerThreadPoolQueue;
-    private final BlockingQueue<Runnable> consumerManagerThreadPoolQueue;
-    private final FilterServerManager filterServerManager;
-    private final BrokerStatsManager brokerStatsManager;
+    private final SlaveSynchronize slaveSynchronize; // TODO
+    private final BlockingQueue<Runnable> sendThreadPoolQueue; // TODO
+    private final BlockingQueue<Runnable> pullThreadPoolQueue; // TODO
+    private final BlockingQueue<Runnable> clientManagerThreadPoolQueue; // TODO
+    private final BlockingQueue<Runnable> consumerManagerThreadPoolQueue; // TODO
+    private final FilterServerManager filterServerManager; // TODO
+    private final BrokerStatsManager brokerStatsManager; // 统计信息
     private final List<SendMessageHook> sendMessageHookList = new ArrayList<SendMessageHook>();
     private final List<ConsumeMessageHook> consumeMessageHookList = new ArrayList<ConsumeMessageHook>();
     private MessageStore messageStore;
     private RemotingServer remotingServer;
     private RemotingServer fastRemotingServer;
-    private TopicConfigManager topicConfigManager;
+    private TopicConfigManager topicConfigManager; // topics 配置信息
     private ExecutorService sendMessageExecutor;
     private ExecutorService pullMessageExecutor;
     private ExecutorService adminBrokerExecutor;
@@ -132,8 +132,8 @@ public class BrokerController {
     private boolean updateMasterHAServerAddrPeriodically = false;
     private BrokerStats brokerStats;
     private InetSocketAddress storeHost;
-    private BrokerFastFailure brokerFastFailure;
-    private Configuration configuration;
+    private BrokerFastFailure brokerFastFailure; // TODO
+    private Configuration configuration; // 所有配置
 
     public BrokerController(//
         final BrokerConfig brokerConfig, //

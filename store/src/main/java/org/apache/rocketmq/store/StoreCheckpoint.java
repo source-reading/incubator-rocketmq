@@ -27,14 +27,15 @@ import org.apache.rocketmq.common.constant.LoggerName;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+//  checkpoint 配置
 public class StoreCheckpoint {
     private static final Logger log = LoggerFactory.getLogger(LoggerName.STORE_LOGGER_NAME);
     private final RandomAccessFile randomAccessFile;
     private final FileChannel fileChannel;
     private final MappedByteBuffer mappedByteBuffer;
-    private volatile long physicMsgTimestamp = 0;
-    private volatile long logicsMsgTimestamp = 0;
-    private volatile long indexMsgTimestamp = 0;
+    private volatile long physicMsgTimestamp = 0; // commitLog 最后刷盘时间
+    private volatile long logicsMsgTimestamp = 0; // consumeQueue 最终刷盘时间
+    private volatile long indexMsgTimestamp = 0; // index file 最终刷盘时间
 
     public StoreCheckpoint(final String scpPath) throws IOException {
         File file = new File(scpPath);

@@ -22,6 +22,7 @@ import org.apache.rocketmq.common.annotation.ImportantField;
 import org.apache.rocketmq.common.constant.PermName;
 import org.apache.rocketmq.remoting.common.RemotingUtil;
 
+// broker 配置
 public class BrokerConfig {
     private String rocketmqHome = System.getProperty(MixAll.ROCKETMQ_HOME_PROPERTY, System.getenv(MixAll.ROCKETMQ_HOME_ENV));
     @ImportantField

@@ -27,9 +27,9 @@ public abstract class ServiceThread implements Runnable {
     private static final long JOIN_TIME = 90 * 1000;
 
     protected final Thread thread;
-    protected final CountDownLatch2 waitPoint = new CountDownLatch2(1);
-    protected volatile AtomicBoolean hasNotified = new AtomicBoolean(false);
-    protected volatile boolean stopped = false;
+    protected final CountDownLatch2 waitPoint = new CountDownLatch2(1); // 线程等待通知
+    protected volatile AtomicBoolean hasNotified = new AtomicBoolean(false); // 是否被通知
+    protected volatile boolean stopped = false; // 线程是否结束
 
     public ServiceThread() {
         this.thread = new Thread(this, this.getServiceName());

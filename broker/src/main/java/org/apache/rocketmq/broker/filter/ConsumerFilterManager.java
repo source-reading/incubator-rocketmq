@@ -39,6 +39,7 @@ import java.util.concurrent.ConcurrentHashMap;
 /**
  * Consumer filter data manager.Just manage the consumers use expression filter.
  */
+// store/config/consumerFilter.json TODO
 public class ConsumerFilterManager extends ConfigManager {
 
     private static final Logger log = LoggerFactory.getLogger(LoggerName.FILTER_LOGGER_NAME);

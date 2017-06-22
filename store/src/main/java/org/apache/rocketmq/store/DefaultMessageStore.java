@@ -60,40 +60,40 @@ import static org.apache.rocketmq.store.config.BrokerRole.SLAVE;
 public class DefaultMessageStore implements MessageStore {
     private static final Logger log = LoggerFactory.getLogger(LoggerName.STORE_LOGGER_NAME);
 
-    private final MessageStoreConfig messageStoreConfig;
+    private final MessageStoreConfig messageStoreConfig; // 来自 brokerController
     // CommitLog
-    private final CommitLog commitLog;
+    private final CommitLog commitLog; // 处理 commit log
 
-    private final ConcurrentHashMap<String/* topic */, ConcurrentHashMap<Integer/* queueId */, ConsumeQueue>> consumeQueueTable;
+    private final ConcurrentHashMap<String/* topic */, ConcurrentHashMap<Integer/* queueId */, ConsumeQueue>> consumeQueueTable; // ConsumeQueue 信息
 
-    private final FlushConsumeQueueService flushConsumeQueueService;
+    private final FlushConsumeQueueService flushConsumeQueueService; // 刷新ConsumeQueue到磁盘的线程
 
-    private final CleanCommitLogService cleanCommitLogService;
+    private final CleanCommitLogService cleanCommitLogService;  // 清除过期 comment log file
 
-    private final CleanConsumeQueueService cleanConsumeQueueService;
+    private final CleanConsumeQueueService cleanConsumeQueueService; // 根据 comment log 最小 offset 删除 consumeQueue
 
-    private final IndexService indexService;
+    private final IndexService indexService; // 索引服务
 
-    private final AllocateMappedFileService allocateMappedFileService;
+    private final AllocateMappedFileService allocateMappedFileService; // 预分配 mappedFile 线程
 
-    private final ReputMessageService reputMessageService;
+    private final ReputMessageService reputMessageService; // 获取最新消息, 构建到 consumeQueue & index
 
-    private final HAService haService;
+    private final HAService haService; // TODO
 
-    private final ScheduleMessageService scheduleMessageService;
+    private final ScheduleMessageService scheduleMessageService; // TODO
 
-    private final StoreStatsService storeStatsService;
+    private final StoreStatsService storeStatsService; // 统计线程
 
-    private final TransientStorePool transientStorePool;
+    private final TransientStorePool transientStorePool; // TODO
 
     private final RunningFlags runningFlags = new RunningFlags();
     private final SystemClock systemClock = new SystemClock();
 
     private final ScheduledExecutorService scheduledExecutorService =
         Executors.newSingleThreadScheduledExecutor(new ThreadFactoryImpl("StoreScheduledThread"));
-    private final BrokerStatsManager brokerStatsManager;
-    private final MessageArrivingListener messageArrivingListener;
-    private final BrokerConfig brokerConfig;
+    private final BrokerStatsManager brokerStatsManager; // 来自 brokerController
+    private final MessageArrivingListener messageArrivingListener; // 来自 brokerController
+    private final BrokerConfig brokerConfig; // 来自 brokerController
 
     private volatile boolean shutdown = true;
 
@@ -156,25 +156,26 @@ public class DefaultMessageStore implements MessageStore {
         boolean result = true;
 
         try {
-            boolean lastExitOK = !this.isTempFileExist();
+            boolean lastExitOK = !this.isTempFileExist();  // 是否正常退出
             log.info("last shutdown {}", lastExitOK ? "normally" : "abnormally");
 
             if (null != scheduleMessageService) {
-                result = result && this.scheduleMessageService.load();
+                result = result && this.scheduleMessageService.load(); // 解析延迟调度信息
             }
 
             // load Commit Log
-            result = result && this.commitLog.load();
+            result = result && this.commitLog.load(); // load comment log files
 
             // load Consume Queue
-            result = result && this.loadConsumeQueue();
+            result = result && this.loadConsumeQueue(); // load consumeQueue files
 
             if (result) {
+                // load checkout point
                 this.storeCheckpoint =
                     new StoreCheckpoint(StorePathConfigHelper.getStoreCheckpoint(this.messageStoreConfig.getStorePathRootDir()));
-
+                // load index files
                 this.indexService.load(lastExitOK);
-
+                // 恢复一些标记, 例如文件当前写的位置; 如果异常退出还会恢复数据
                 this.recover(lastExitOK);
 
                 log.info("load over, and the max phy offset = {}", this.getMaxPhyOffset());
@@ -1153,14 +1154,14 @@ public class DefaultMessageStore implements MessageStore {
     }
 
     private void addScheduleTask() {
-
+        // 清除文件
         this.scheduledExecutorService.scheduleAtFixedRate(new Runnable() {
             @Override
             public void run() {
                 DefaultMessageStore.this.cleanFilesPeriodically();
             }
         }, 1000 * 60, this.messageStoreConfig.getCleanResourceInterval(), TimeUnit.MILLISECONDS);
-
+        // 检查文件是否完整
         this.scheduledExecutorService.scheduleAtFixedRate(new Runnable() {
             @Override
             public void run() {
@@ -1453,8 +1454,8 @@ public class DefaultMessageStore implements MessageStore {
             int deletePhysicFilesInterval = DefaultMessageStore.this.getMessageStoreConfig().getDeleteCommitLogFilesInterval();
             int destroyMapedFileIntervalForcibly = DefaultMessageStore.this.getMessageStoreConfig().getDestroyMapedFileIntervalForcibly();
 
-            boolean timeup = this.isTimeToDelete();
-            boolean spacefull = this.isSpaceToDelete();
+            boolean timeup = this.isTimeToDelete(); // 是否到了删除文件的时间点, 默认凌晨四点
+            boolean spacefull = this.isSpaceToDelete(); // 检查磁盘空间
             boolean manualDelete = this.manualDeleteFileSeveralTimes > 0;
 
             if (timeup || spacefull || manualDelete) {
@@ -1589,7 +1590,7 @@ public class DefaultMessageStore implements MessageStore {
 
         private void deleteExpiredFiles() {
             int deleteLogicsFilesInterval = DefaultMessageStore.this.getMessageStoreConfig().getDeleteConsumeQueueFilesInterval();
-
+            // commit log 最小的 offset, consumeQueue 里面小于该 offset 都要删除
             long minOffset = DefaultMessageStore.this.commitLog.getMinOffset();
             if (minOffset > this.lastPhysicalMinOffset) {
                 this.lastPhysicalMinOffset = minOffset;

@@ -60,10 +60,10 @@ public class MappedFile extends ReferenceResource {
     protected ByteBuffer writeBuffer = null;
     protected TransientStorePool transientStorePool = null;
     private String fileName;
-    private long fileFromOffset;
+    private long fileFromOffset; // 文件起始 offset
     private File file;
     private MappedByteBuffer mappedByteBuffer;
-    private volatile long storeTimestamp = 0;
+    private volatile long storeTimestamp = 0; // TODO
     private boolean firstCreateInQueue = false;
 
     public MappedFile() {

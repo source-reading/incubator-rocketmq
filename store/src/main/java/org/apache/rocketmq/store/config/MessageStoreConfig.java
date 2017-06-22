@@ -20,6 +20,7 @@ import java.io.File;
 import org.apache.rocketmq.common.annotation.ImportantField;
 import org.apache.rocketmq.store.ConsumeQueue;
 
+// 存储 message 相关配置
 public class MessageStoreConfig {
     //The root directory in which the log data is kept
     @ImportantField
@@ -77,10 +78,10 @@ public class MessageStoreConfig {
     private int diskMaxUsedSpaceRatio = 75;
     // The number of hours to keep a log file before deleting it (in hours)
     @ImportantField
-    private int fileReservedTime = 72;
+    private int fileReservedTime = 72; // 文件存储时长
     // Flow control for ConsumeQueue
     private int putMsgIndexHightWater = 600000;
-    // The maximum size of a single log file,default is 512K
+    // The maximum size of a single log file,default is 512Kxz
     private int maxMessageSize = 1024 * 1024 * 4;
     // Whether check the CRC32 of the records consumed.
     // This ensures no on-the-wire or on-disk corruption to the messages occurred.
@@ -93,10 +94,10 @@ public class MessageStoreConfig {
     // Flush page size when the disk in warming state
     private int flushLeastPagesWhenWarmMapedFile = 1024 / 4 * 16;
     // How many pages are to be flushed when flush ConsumeQueue
-    private int flushConsumeQueueLeastPages = 2;
+    private int flushConsumeQueueLeastPages = 2; // 刷新到磁盘的最小 page
     private int flushCommitLogThoroughInterval = 1000 * 10;
     private int commitCommitLogThoroughInterval = 200;
-    private int flushConsumeQueueThoroughInterval = 1000 * 60;
+    private int flushConsumeQueueThoroughInterval = 1000 * 60; // 刷新到磁盘时间间隔
     @ImportantField
     private int maxTransferBytesOnMessageInMemory = 1024 * 256;
     @ImportantField

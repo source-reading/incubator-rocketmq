@@ -39,11 +39,11 @@ public class MappedFileQueue {
 
     private final int mappedFileSize;
 
-    private final CopyOnWriteArrayList<MappedFile> mappedFiles = new CopyOnWriteArrayList<MappedFile>();
+    private final CopyOnWriteArrayList<MappedFile> mappedFiles = new CopyOnWriteArrayList<MappedFile>(); // TODO 顺序如何
 
     private final AllocateMappedFileService allocateMappedFileService;
 
-    private long flushedWhere = 0;
+    private long flushedWhere = 0; // 刷盘位置
     private long committedWhere = 0;
 
     private volatile long storeTimestamp = 0;

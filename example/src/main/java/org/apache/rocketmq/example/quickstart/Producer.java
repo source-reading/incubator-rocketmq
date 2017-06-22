@@ -20,6 +20,7 @@ import org.apache.rocketmq.client.exception.MQClientException;
 import org.apache.rocketmq.client.producer.DefaultMQProducer;
 import org.apache.rocketmq.client.producer.SendResult;
 import org.apache.rocketmq.common.message.Message;
+import org.apache.rocketmq.common.message.MessageConst;
 import org.apache.rocketmq.remoting.common.RemotingHelper;
 
 /**
@@ -50,22 +51,23 @@ public class Producer {
          */
         producer.start();
 
-        for (int i = 0; i < 1000; i++) {
+        for (int i = 0; i < 1; i++) {
             try {
 
                 /*
                  * Create a message instance, specifying topic, tag and message body.
                  */
-                Message msg = new Message("TopicTest" /* Topic */,
-                    "TagA" /* Tag */,
+                Message msg = new Message("zenggang" /* Topic */,
+                    "TagA qq单独qsss" /* Tag */,
+                        "orderId002fffddddd",
                     ("Hello RocketMQ " + i).getBytes(RemotingHelper.DEFAULT_CHARSET) /* Message body */
                 );
+                msg.setDelayTimeLevel(3);
 
                 /*
                  * Call send message to deliver message to one of brokers.
                  */
                 SendResult sendResult = producer.send(msg);
-
                 System.out.printf("%s%n", sendResult);
             } catch (Exception e) {
                 e.printStackTrace();

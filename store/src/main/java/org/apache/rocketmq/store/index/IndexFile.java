@@ -22,6 +22,7 @@ import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.channels.FileLock;
 import java.util.List;
+
 import org.apache.rocketmq.common.constant.LoggerName;
 import org.apache.rocketmq.store.MappedFile;
 import org.slf4j.Logger;
@@ -32,17 +33,17 @@ public class IndexFile {
     private static int hashSlotSize = 4;
     private static int indexSize = 20;
     private static int invalidIndex = 0;
-    private final int hashSlotNum;
-    private final int indexNum;
+    private final int hashSlotNum; // 总槽位数
+    private final int indexNum; // 总索引个数
     private final MappedFile mappedFile;
     private final FileChannel fileChannel;
     private final MappedByteBuffer mappedByteBuffer;
     private final IndexHeader indexHeader;
 
     public IndexFile(final String fileName, final int hashSlotNum, final int indexNum,
-        final long endPhyOffset, final long endTimestamp) throws IOException {
-        int fileTotalSize =
-            IndexHeader.INDEX_HEADER_SIZE + (hashSlotNum * hashSlotSize) + (indexNum * indexSize);
+                     final long endPhyOffset, final long endTimestamp) throws IOException {
+        // 文件总大小 = 索引头大小 + 槽个数 * 每个槽大小 + 索引个数 * 索引大小
+        int fileTotalSize = IndexHeader.INDEX_HEADER_SIZE + (hashSlotNum * hashSlotSize) + (indexNum * indexSize);
         this.mappedFile = new MappedFile(fileName, fileTotalSize);
         this.fileChannel = this.mappedFile.getFileChannel();
         this.mappedByteBuffer = this.mappedFile.getMappedByteBuffer();
@@ -89,10 +90,15 @@ public class IndexFile {
         return this.mappedFile.destroy(intervalForcibly);
     }
 
+    // put 数据
     public boolean putKey(final String key, final long phyOffset, final long storeTimestamp) {
+        // 检查索引数是否已经满了
         if (this.indexHeader.getIndexCount() < this.indexNum) {
+            // key hash
             int keyHash = indexKeyHashMethod(key);
+            // 落在的槽位
             int slotPos = keyHash % this.hashSlotNum;
+            // key 槽位的相对文件的位置
             int absSlotPos = IndexHeader.INDEX_HEADER_SIZE + slotPos * hashSlotSize;
 
             FileLock fileLock = null;
@@ -101,7 +107,9 @@ public class IndexFile {
 
                 // fileLock = this.fileChannel.lock(absSlotPos, hashSlotSize,
                 // false);
+                // 获取 key 槽位的值, 为索引编号
                 int slotValue = this.mappedByteBuffer.getInt(absSlotPos);
+                // 值不在有效范围
                 if (slotValue <= invalidIndex || slotValue > this.indexHeader.getIndexCount()) {
                     slotValue = invalidIndex;
                 }
@@ -118,15 +126,14 @@ public class IndexFile {
                     timeDiff = 0;
                 }
 
-                int absIndexPos =
-                    IndexHeader.INDEX_HEADER_SIZE + this.hashSlotNum * hashSlotSize
-                        + this.indexHeader.getIndexCount() * indexSize;
+                //  key 内容写入的位置 = header 大小 + 槽位总用大小 + 当前索引编号 *  索引大小
+                int absIndexPos = IndexHeader.INDEX_HEADER_SIZE + this.hashSlotNum * hashSlotSize + this.indexHeader.getIndexCount() * indexSize;
 
                 this.mappedByteBuffer.putInt(absIndexPos, keyHash);
                 this.mappedByteBuffer.putLong(absIndexPos + 4, phyOffset);
                 this.mappedByteBuffer.putInt(absIndexPos + 4 + 8, (int) timeDiff);
                 this.mappedByteBuffer.putInt(absIndexPos + 4 + 8 + 4, slotValue);
-
+                // 设置槽位值为索引编号
                 this.mappedByteBuffer.putInt(absSlotPos, this.indexHeader.getIndexCount());
 
                 if (this.indexHeader.getIndexCount() <= 1) {
@@ -153,7 +160,7 @@ public class IndexFile {
             }
         } else {
             log.warn("Over index file capacity: index count = " + this.indexHeader.getIndexCount()
-                + "; index max num = " + this.indexNum);
+                    + "; index max num = " + this.indexNum);
         }
 
         return false;
@@ -179,6 +186,7 @@ public class IndexFile {
         return this.indexHeader.getEndPhyOffset();
     }
 
+    // [begin, end] 是否落在该 indexfile
     public boolean isTimeMatched(final long begin, final long end) {
         boolean result = begin < this.indexHeader.getBeginTimestamp() && end > this.indexHeader.getEndTimestamp();
         result = result || (begin >= this.indexHeader.getBeginTimestamp() && begin <= this.indexHeader.getEndTimestamp());
@@ -186,8 +194,9 @@ public class IndexFile {
         return result;
     }
 
+    // 根据 key 获取最多 maxNum 的 offset, 相同的 key 会映射到同一个槽, 根据索引内容去链表所有的 key 内容
     public void selectPhyOffset(final List<Long> phyOffsets, final String key, final int maxNum,
-        final long begin, final long end, boolean lock) {
+                                final long begin, final long end, boolean lock) {
         if (this.mappedFile.hold()) {
             int keyHash = indexKeyHashMethod(key);
             int slotPos = keyHash % this.hashSlotNum;
@@ -207,17 +216,17 @@ public class IndexFile {
                 // }
 
                 if (slotValue <= invalidIndex || slotValue > this.indexHeader.getIndexCount()
-                    || this.indexHeader.getIndexCount() <= 1) {
+                        || this.indexHeader.getIndexCount() <= 1) {
                     // TODO NOTFOUND
                 } else {
-                    for (int nextIndexToRead = slotValue;;) {
+                    for (int nextIndexToRead = slotValue; ; ) {
                         if (phyOffsets.size() >= maxNum) {
                             break;
                         }
 
                         int absIndexPos =
-                            IndexHeader.INDEX_HEADER_SIZE + this.hashSlotNum * hashSlotSize
-                                + nextIndexToRead * indexSize;
+                                IndexHeader.INDEX_HEADER_SIZE + this.hashSlotNum * hashSlotSize
+                                        + nextIndexToRead * indexSize;
 
                         int keyHashRead = this.mappedByteBuffer.getInt(absIndexPos);
                         long phyOffsetRead = this.mappedByteBuffer.getLong(absIndexPos + 4);
@@ -239,8 +248,8 @@ public class IndexFile {
                         }
 
                         if (prevIndexRead <= invalidIndex
-                            || prevIndexRead > this.indexHeader.getIndexCount()
-                            || prevIndexRead == nextIndexToRead || timeRead < begin) {
+                                || prevIndexRead > this.indexHeader.getIndexCount()
+                                || prevIndexRead == nextIndexToRead || timeRead < begin) {
                             break;
                         }
 

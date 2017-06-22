@@ -23,6 +23,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
+
 import org.apache.rocketmq.common.UtilAll;
 import org.apache.rocketmq.common.constant.LoggerName;
 import org.apache.rocketmq.common.message.MessageConst;
@@ -35,7 +36,9 @@ import org.slf4j.LoggerFactory;
 
 public class IndexService {
     private static final Logger log = LoggerFactory.getLogger(LoggerName.STORE_LOGGER_NAME);
-    /** Maximum times to attempt index file creation. */
+    /**
+     * Maximum times to attempt index file creation.
+     */
     private static final int MAX_TRY_IDX_CREATE = 3;
     private final DefaultMessageStore defaultMessageStore;
     private final int hashSlotNum;
@@ -48,8 +51,7 @@ public class IndexService {
         this.defaultMessageStore = store;
         this.hashSlotNum = store.getMessageStoreConfig().getMaxHashSlotNum();
         this.indexNum = store.getMessageStoreConfig().getMaxIndexNum();
-        this.storePath =
-            StorePathConfigHelper.getStorePathIndex(store.getMessageStoreConfig().getStorePathRootDir());
+        this.storePath = StorePathConfigHelper.getStorePathIndex(store.getMessageStoreConfig().getStorePathRootDir());
     }
 
     public boolean load(final boolean lastExitOK) {
@@ -65,7 +67,7 @@ public class IndexService {
 
                     if (!lastExitOK) {
                         if (f.getEndTimestamp() > this.defaultMessageStore.getStoreCheckpoint()
-                            .getIndexMsgTimestamp()) {
+                                .getIndexMsgTimestamp()) {
                             f.destroy(0);
                             continue;
                         }
@@ -152,6 +154,7 @@ public class IndexService {
         }
     }
 
+    // 根据 key 查询所有 offset
     public QueryOffsetResult queryOffset(String topic, String key, int maxNum, long begin, long end) {
         List<Long> phyOffsets = new ArrayList<Long>(maxNum);
 
@@ -218,6 +221,7 @@ public class IndexService {
             }
 
             if (req.getUniqKey() != null) {
+                // 根据 offsetMsgId 写入
                 indexFile = putKey(indexFile, msg, buildKey(topic, req.getUniqKey()));
                 if (indexFile == null) {
                     log.error("putKey error commitlog {} uniqkey {}", req.getCommitLogOffset(), req.getUniqKey());
@@ -230,6 +234,7 @@ public class IndexService {
                 for (int i = 0; i < keyset.length; i++) {
                     String key = keyset[i];
                     if (key.length() > 0) {
+                        // 根据 key 写入
                         indexFile = putKey(indexFile, msg, buildKey(topic, key));
                         if (indexFile == null) {
                             log.error("putKey error commitlog {} uniqkey {}", req.getCommitLogOffset(), req.getUniqKey());
@@ -287,6 +292,7 @@ public class IndexService {
         return indexFile;
     }
 
+    // 获取最后一个没有写满的文件，或者创建一个新的
     public IndexFile getAndCreateLastIndexFile() {
         IndexFile indexFile = null;
         IndexFile prevIndexFile = null;
@@ -312,11 +318,11 @@ public class IndexService {
         if (indexFile == null) {
             try {
                 String fileName =
-                    this.storePath + File.separator
-                        + UtilAll.timeMillisToHumanString(System.currentTimeMillis());
+                        this.storePath + File.separator
+                                + UtilAll.timeMillisToHumanString(System.currentTimeMillis());
                 indexFile =
-                    new IndexFile(fileName, this.hashSlotNum, this.indexNum, lastUpdateEndPhyOffset,
-                        lastUpdateIndexTimestamp);
+                        new IndexFile(fileName, this.hashSlotNum, this.indexNum, lastUpdateEndPhyOffset,
+                                lastUpdateIndexTimestamp);
                 this.readWriteLock.writeLock().lock();
                 this.indexFileList.add(indexFile);
             } catch (Exception e) {

@@ -50,14 +50,14 @@ public class CommitLog {
     private final static int BLANK_MAGIC_CODE = 0xBBCCDDEE ^ 1880681586 + 8;
     private final MappedFileQueue mappedFileQueue;
     private final DefaultMessageStore defaultMessageStore;
-    private final FlushCommitLogService flushCommitLogService;
+    private final FlushCommitLogService flushCommitLogService; // 刷新 commit log 线程
 
     //If TransientStorePool enabled, we must flush message to FileChannel at fixed periods
     private final FlushCommitLogService commitLogService;
 
     private final AppendMessageCallback appendMessageCallback;
     private final ThreadLocal<MessageExtBatchEncoder> batchEncoderThreadLocal;
-    private HashMap<String/* topic-queueid */, Long/* offset */> topicQueueTable = new HashMap<String, Long>(1024);
+    private HashMap<String/* topic-queueid */, Long/* offset */> topicQueueTable = new HashMap<String, Long>(1024); //  topic-queueid -> 该consumeQueue 消费的编号
     private volatile long confirmOffset = -1L;
 
     private volatile long beginTimeInLock = 0;
@@ -75,6 +75,7 @@ public class CommitLog {
 
         this.commitLogService = new CommitRealTimeService();
 
+        // 处理 message
         this.appendMessageCallback = new DefaultAppendMessageCallback(defaultMessageStore.getMessageStoreConfig().getMaxMessageSize());
         batchEncoderThreadLocal = new ThreadLocal<MessageExtBatchEncoder>() {
             @Override protected MessageExtBatchEncoder initialValue() {
@@ -550,6 +551,7 @@ public class CommitLog {
         if (tranType == MessageSysFlag.TRANSACTION_NOT_TYPE//
             || tranType == MessageSysFlag.TRANSACTION_COMMIT_TYPE) {
             // Delay Delivery
+            // 延迟消息放入 延迟topic 里面
             if (msg.getDelayTimeLevel() > 0) {
                 if (msg.getDelayTimeLevel() > this.defaultMessageStore.getScheduleMessageService().getMaxDelayLevel()) {
                     msg.setDelayTimeLevel(this.defaultMessageStore.getScheduleMessageService().getMaxDelayLevel());
@@ -998,10 +1000,11 @@ public class CommitLog {
 
             while (!this.isStopped()) {
                 boolean flushCommitLogTimed = CommitLog.this.defaultMessageStore.getMessageStoreConfig().isFlushCommitLogTimed();
-
+                // 刷新间隔
                 int interval = CommitLog.this.defaultMessageStore.getMessageStoreConfig().getFlushIntervalCommitLog();
+                // 刷新 page 数
                 int flushPhysicQueueLeastPages = CommitLog.this.defaultMessageStore.getMessageStoreConfig().getFlushCommitLogLeastPages();
-
+                // 最长不刷新时间
                 int flushPhysicQueueThoroughInterval =
                     CommitLog.this.defaultMessageStore.getMessageStoreConfig().getFlushCommitLogThoroughInterval();
 
