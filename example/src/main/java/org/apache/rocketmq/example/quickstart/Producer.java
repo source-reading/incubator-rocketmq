@@ -32,7 +32,7 @@ public class Producer {
         /*
          * Instantiate with a producer group name.
          */
-        DefaultMQProducer producer = new DefaultMQProducer("please_rename_unique_group_name");
+        DefaultMQProducer producer = new DefaultMQProducer("wiki");
 
         /*
          * Specify name server addresses.
@@ -53,16 +53,14 @@ public class Producer {
 
         for (int i = 0; i < 1; i++) {
             try {
-
                 /*
                  * Create a message instance, specifying topic, tag and message body.
                  */
                 Message msg = new Message("zenggang" /* Topic */,
-                    "TagA qq单独qsss" /* Tag */,
-                        "orderId002fffddddd",
-                    ("Hello RocketMQ " + i).getBytes(RemotingHelper.DEFAULT_CHARSET) /* Message body */
+                    "d" /* Tag */,
+                        "taga || steven1",
+                    ("Hello RocketMQ 最新的成功啊 的顶顶顶顶顶 dddd aaa  三德科技得你就NFIEWa" + i).getBytes(RemotingHelper.DEFAULT_CHARSET) /* Message body */
                 );
-                msg.setDelayTimeLevel(3);
 
                 /*
                  * Call send message to deliver message to one of brokers.

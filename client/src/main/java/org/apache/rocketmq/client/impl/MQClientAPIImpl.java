@@ -791,6 +791,7 @@ public class MQClientAPIImpl {
         throw new MQBrokerException(response.getCode(), response.getRemark());
     }
 
+    // 去 broke 查询 consumeGroup 当前 offset
     public long queryConsumerOffset(//
         final String addr, //
         final QueryConsumerOffsetRequestHeader requestHeader, //

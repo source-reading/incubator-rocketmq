@@ -68,7 +68,7 @@ public class DefaultMQPushConsumer extends ClientConfig implements MQPushConsume
      *
      * See <a href="http://rocketmq.incubator.apache.org/docs/core-concept/">here</a> for further discussion.
      */
-    private String consumerGroup;
+    private String consumerGroup; // 消费组
 
     /**
      * Message model defines the way how messages are delivered to each consumer clients.
@@ -128,7 +128,7 @@ public class DefaultMQPushConsumer extends ClientConfig implements MQPushConsume
     /**
      * Queue allocation algorithm specifying how message queues are allocated to each consumer clients.
      */
-    private AllocateMessageQueueStrategy allocateMessageQueueStrategy;
+    private AllocateMessageQueueStrategy allocateMessageQueueStrategy; // 分配 consumeQueue 算法
 
     /**
      * Subscription relationship
@@ -138,7 +138,7 @@ public class DefaultMQPushConsumer extends ClientConfig implements MQPushConsume
     /**
      * Message listener
      */
-    private MessageListener messageListener;
+    private MessageListener messageListener; // 收到消息后回调函数
 
     /**
      * Offset Storage
@@ -163,12 +163,12 @@ public class DefaultMQPushConsumer extends ClientConfig implements MQPushConsume
     /**
      * Concurrently max span offset.it has no effect on sequential consumption
      */
-    private int consumeConcurrentlyMaxSpan = 2000;
+    private int consumeConcurrentlyMaxSpan = 2000; // TODO
 
     /**
      * Flow control threshold
      */
-    private int pullThresholdForQueue = 1000;
+    private int pullThresholdForQueue = 1000; // TODO
 
     /**
      * Message pull Interval
@@ -188,7 +188,7 @@ public class DefaultMQPushConsumer extends ClientConfig implements MQPushConsume
     /**
      * Whether update subscription relationship when every pull
      */
-    private boolean postSubscriptionWhenPull = false;
+    private boolean postSubscriptionWhenPull = false; // TODO
 
     /**
      * Whether the unit of subscription group
@@ -202,7 +202,7 @@ public class DefaultMQPushConsumer extends ClientConfig implements MQPushConsume
      * If messages are re-consumed more than {@link #maxReconsumeTimes} before success, it's be directed to a deletion
      * queue waiting.
      */
-    private int maxReconsumeTimes = -1;
+    private int maxReconsumeTimes = -1; // 消费失败最大重式次数
 
     /**
      * Suspending pulling time for cases requiring slow pulling like flow-control scenario.
@@ -212,7 +212,7 @@ public class DefaultMQPushConsumer extends ClientConfig implements MQPushConsume
     /**
      * Maximum amount of time in minutes a message may block the consuming thread.
      */
-    private long consumeTimeout = 15;
+    private long consumeTimeout = 15; //
 
     /**
      * Default constructor.

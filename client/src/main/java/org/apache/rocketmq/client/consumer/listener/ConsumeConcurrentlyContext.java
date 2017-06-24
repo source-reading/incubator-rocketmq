@@ -29,7 +29,7 @@ public class ConsumeConcurrentlyContext {
      * 0,broker control retry frequency<br>
      * >0,client control retry frequency
      */
-    private int delayLevelWhenNextConsume = 0;
+    private int delayLevelWhenNextConsume = 0; // TODO
     private int ackIndex = Integer.MAX_VALUE;
 
     public ConsumeConcurrentlyContext(MessageQueue messageQueue) {
